@@ -1,0 +1,70 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Build config -->
+  <PropertyGroup>
+    <AssemblyName>NanoByte.CloneGenerator</AssemblyName>
+    <RootNamespace>NanoByte.CloneGenerator</RootNamespace>
+    <PackageId>NanoByte.CloneGenerator</PackageId>
+    <LangVersion>14.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <OutputPath>..\..\artifacts\$(Configuration)\</OutputPath>
+    <OutputType>Library</OutputType>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\sgKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <!-- Roslyn component packaging -->
+  <PropertyGroup>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeSymbols>False</IncludeSymbols><!-- Without lib/ the symbol package would be empty -->
+    <NoWarn>$(NoWarn);NU5128;RS2008</NoWarn><!-- No lib/ref assets (expected for analyzer-only packages) + no analyzer release tracking -->
+  </PropertyGroup>
+
+  <!-- NuGet package metadata -->
+  <PropertyGroup>
+    <Description>Roslyn source generator for deep Clone() methods. Annotate a partial class with [Cloneable] and the member-by-member copy is generated at compile time.</Description>
+    <Authors>Bastian Eicher</Authors>
+    <Copyright>Copyright Bastian Eicher</Copyright>
+    <PackageProjectUrl>https://clone-generator.nano-byte.net/</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>C#;Clone;DeepCopy;CodeGen;Roslyn;SourceGenerator</PackageTags>
+    <RepositoryUrl>https://github.com/nano-byte/clone-generator</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Dependencies -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.400" PrivateAssets="All" />
+  </ItemGroup>
+
+  <!-- Pack the generator and its private dependencies, but not Microsoft.CodeAnalysis.* -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackCloneGenerator</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+  <Target Name="_PackCloneGenerator">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(TargetPath)" PackagePath="analyzers/dotnet/cs/" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Global usings -->
+  <ItemGroup>
+    <Using Include="Microsoft.CodeAnalysis" />
+    <Using Include="Microsoft.CodeAnalysis.CSharp" />
+    <Using Include="Microsoft.CodeAnalysis.CSharp.Syntax" />
+    <Using Include="Microsoft.CodeAnalysis.Text" />
+  </ItemGroup>
+
+</Project>

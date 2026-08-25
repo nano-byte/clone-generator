@@ -1,0 +1,12 @@
+- name: Home
+  href: index.md
+- name: Attributes
+  href: attributes.md
+- name: What gets copied
+  href: members.md
+- name: Inheritance
+  href: inheritance.md
+- name: Clone interfaces
+  href: interfaces.md
+- name: API
+  href: api/

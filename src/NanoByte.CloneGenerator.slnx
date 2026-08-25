@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CloneGenerator/CloneGenerator.csproj" />
+  <Project Path="UnitTests/UnitTests.csproj" />
+</Solution>

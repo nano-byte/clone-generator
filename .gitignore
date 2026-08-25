@@ -1,0 +1,15 @@
+*.user
+*.bak
+
+# Caches
+/src/.vs/
+/src/.idea/
+/src/_ReSharper.*/
+/src/*/obj/
+/src/*/bin/
+/doc/obj/
+/doc/api/
+
+# Output
+/artifacts/
+**/TestResults/

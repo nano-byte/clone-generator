@@ -1,0 +1,47 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../src",
+          "files": ["*/*.csproj"],
+          "exclude": ["UnitTests/*"]
+        }
+      ],
+      "dest": "api",
+      "filter": "filterConfig.yml"
+    }
+  ],
+  "build": {
+    "globalMetadata": {
+      "_baseUrl": "https://clone-generator.nano-byte.net/",
+      "_appTitle": "NanoByte Clone Generator",
+      "_appFooter": "Copyright Bastian Eicher"
+    },
+    "content": [
+      {
+        "files": [
+          "*.md",
+          "toc.yml",
+          "api/*.yml"
+        ]
+      }
+    ],
+    "overwrite": [
+      {
+        "src": "../src/",
+        "files": ["**/*.md"]
+      }
+    ],
+    "xrefService": [
+      "https://xref.docs.microsoft.com/query?uid={uid}"
+    ],
+    "postProcessors": ["ExtractSearchIndex"],
+    "template": [
+      "default",
+      "modern",
+      "template"
+    ],
+    "dest": "../artifacts/Documentation"
+  }
+}

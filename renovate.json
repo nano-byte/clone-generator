@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base", ":disableDependencyDashboard"],
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["^gittools"],
+      "allowedVersions": "<4"
+    },
+    {
+      "matchPackagePatterns": ["Test", "Assert", "Mock", "[Xx]unit", "Moq"],
+      "groupName": "Testing deps",
+      "automerge": true,
+      "automergeType": "branch"
+    },
+    {
+      "matchPackagePatterns": ["docfx", "SourceLink"],
+      "automerge": true,
+      "automergeType": "branch"
+    },
+    {
+      "description": "Support older .NET SDK / C# compiler versions",
+      "matchPackageNames": ["Microsoft.CodeAnalysis.CSharp"],
+      "allowedVersions": "<5.4"
+    }
+  ]
+}

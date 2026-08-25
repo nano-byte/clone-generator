@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Build config -->
+  <PropertyGroup>
+    <AssemblyName>NanoByte.CloneGenerator.UnitTests</AssemblyName>
+    <RootNamespace>NanoByte.CloneGenerator</RootNamespace>
+    <LangVersion>14.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+    <IsPackable>False</IsPackable>
+    <DeterministicSourcePaths>False</DeterministicSourcePaths>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\sgKey.snk</AssemblyOriginatorKeyFile>
+    <UseMicrosoftTestingPlatformRunner>True</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --report-xunit-trx --results-directory $(MSBuildProjectDirectory)/TestResults</TestingPlatformCommandLineArguments>
+  </PropertyGroup>
+
+  <!-- Dependencies -->
+  <ItemGroup>
+    <ProjectReference Include="..\CloneGenerator\CloneGenerator.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" />
+    <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageReference Include="xunit.v3" Version="4.0.0" />
+  </ItemGroup>
+
+  <!-- Mark as unit test project -->
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+
+  <!-- Global usings -->
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="AwesomeAssertions" />
+    <Using Include="Microsoft.CodeAnalysis" />
+  </ItemGroup>
+
+</Project>
