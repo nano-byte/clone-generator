@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Home | NanoByte Clone Generator </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Home | NanoByte Clone Generator ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/nano-byte/clone-generator/blob/0.1.1/doc/index.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="nanobyte-clone-generator">NanoByte Clone Generator</h1>
+
+<p>A <a href="https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/source-generators-overview">Roslyn source generator</a> for deep <code>Clone()</code> methods.</p>
+<p>Annotate a <code>partial</code> class with <code>[Cloneable]</code> and the member-by-member copy is generated at compile time. No reflection, no runtime dependency, trim- and AOT-safe.</p>
+<h2 id="usage">Usage</h2>
+<p>Add a reference to the <a href="https://www.nuget.org/packages/NanoByte.CloneGenerator/">NanoByte.CloneGenerator</a> NuGet package to your project. It is an analyzer, so mark it as a build-time-only dependency:</p>
+<pre><code class="lang-xml">&lt;PackageReference Include=&quot;NanoByte.CloneGenerator&quot; PrivateAssets=&quot;All&quot; /&gt;
+</code></pre>
+<p>You can then make a class cloneable like this:</p>
+<pre><code class="lang-csharp">using NanoByte.CloneGenerator;
+
+[Cloneable]
+public partial class Contact
+{
+    public required string LastName { get; set; }
+    public string? FirstName { get; set; }
+    public Address? WorkAddress { get; set; }
+    public List&lt;PhoneNumber&gt; PhoneNumbers { get; } = [];
+}
+</code></pre>
+<p>which generates:</p>
+<pre><code class="lang-csharp">public virtual Contact Clone()
+{
+    var from = this;
+    var to = new Contact {LastName = from.LastName};
+    CloneFromTo(from, to);
+    return to;
+}
+
+protected static void CloneFromTo(Contact from, Contact to)
+{
+    to.FirstName = from.FirstName;
+    to.WorkAddress = from.WorkAddress?.Clone();
+    foreach (var item in from.PhoneNumbers) to.PhoneNumbers.Add(item?.Clone()!);
+}
+</code></pre>
+<h2 id="no-runtime-dependency">No runtime dependency</h2>
+<p>The <a href="attributes.html">marker attributes</a> are <code>internal</code> to each compilation that uses this package. An assembly granted <code>InternalsVisibleTo</code> access to several such projects will therefore see several <code>CloneableAttribute</code> types.</p>
+<h2 id="where-to-go-next">Where to go next</h2>
+<ul>
+<li><a href="attributes.html">Attributes</a>: opting in, and the escape hatches</li>
+<li><a href="members.html">What gets copied</a>: the member classification rules</li>
+<li><a href="inheritance.html">Inheritance</a>: how the <code>CloneFromTo</code> chain works</li>
+<li><a href="interfaces.html">Clone interfaces</a>: <code>ICloneable&lt;T&gt;</code> and <code>System.ICloneable</code></li>
+</ul>
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>Classes only. Value types are not supported.</li>
+<li>No nested types.</li>
+<li>No cycle detection. An object graph containing a cycle will recurse until the stack runs out.</li>
+<li>Back-references are deep-copied like anything else, which detaches them from the new graph. Use <code>[ShallowClone]</code> where you need identity preserved.</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/nano-byte/clone-generator/blob/0.1.1/doc/index.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          Copyright Bastian Eicher
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

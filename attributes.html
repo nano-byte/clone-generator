@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Attributes | NanoByte Clone Generator </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Attributes | NanoByte Clone Generator ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/nano-byte/clone-generator/blob/0.1.1/doc/attributes.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="attributes">Attributes</h1>
+
+<p>All attributes live in the <code>NanoByte.CloneGenerator</code> namespace and are available as soon as you reference the package. There is no runtime package to reference.</p>
+<h2 id="cloneable"><code>[Cloneable]</code></h2>
+<p>Opts a class in. The class must be <code>partial</code>, otherwise you get a compiler error.</p>
+<pre><code class="lang-csharp">[Cloneable]
+public partial class Address
+{
+    public string? Street { get; set; }
+    public string? City { get; set; }
+    public string? Country { get; set; }
+}
+</code></pre>
+<h3 id="methodname"><code>MethodName</code></h3>
+<p>Only relevant when a base type already declares a <code>Clone()</code> method with a different return type. The generated method returning the concrete type is called <code>Clone</code> + the type name by default; set <code>MethodName</code> to override that.</p>
+<pre><code class="lang-csharp">// Would be called CloneMobileNumber() by default
+[Cloneable(MethodName = &quot;CloneNumber&quot;)]
+public sealed partial class MobileNumber : PhoneNumber
+{}
+</code></pre>
+<p>Use this to keep an existing public API intact when replacing hand-written clone methods. See <a href="inheritance.html">Inheritance</a> for how the default name is derived.</p>
+<h2 id="ignoreclone"><code>[IgnoreClone]</code></h2>
+<p>Excludes a property or field. The clone keeps whatever value the member's initializer or constructor gives it.</p>
+<pre><code class="lang-csharp">[Cloneable]
+public partial class AddressBook
+{
+    public List&lt;Contact&gt; Contacts { get; } = [];
+
+    /// &lt;summary&gt;Where this address book will be saved. Deliberately not inherited by clones.&lt;/summary&gt;
+    [IgnoreClone]
+    internal string FilePath = GetDefaultPath();
+}
+</code></pre>
+<h2 id="shallowclone"><code>[ShallowClone]</code></h2>
+<p>Copies a member by reference even when its type is cloneable, so the clone shares the instance.</p>
+<p>Use it where sharing is the point — heavyweight state, delegates, or a back-reference whose identity must be preserved:</p>
+<pre><code class="lang-csharp">[Cloneable]
+public partial class Contact
+{
+    public string? LastName { get; set; }
+
+    /// &lt;summary&gt;The group this contact belongs to. Cloning it would detach the copy from the address book.&lt;/summary&gt;
+    [ShallowClone]
+    public Group? Owner { get; set; }
+}
+</code></pre>
+<h2 id="assembly-cloneshallowtypeoft"><code>[assembly: CloneShallow(typeof(T))]</code></h2>
+<p>Registers a type as safe to copy by reference across the whole assembly, typically because it is immutable. Use this instead of putting <code>[ShallowClone]</code> on every member of that type.</p>
+<pre><code class="lang-csharp">[assembly: CloneShallow(typeof(CountryCode))]
+[assembly: CloneShallow(typeof(PostalCode))]
+</code></pre>
+<p>A good workflow is to convert your types first and let the compiler errors tell you which types to register, rather than trying to list them up front.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/nano-byte/clone-generator/blob/0.1.1/doc/attributes.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          Copyright Bastian Eicher
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

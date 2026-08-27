@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Inheritance | NanoByte Clone Generator </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Inheritance | NanoByte Clone Generator ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/nano-byte/clone-generator/blob/0.1.1/doc/inheritance.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="inheritance">Inheritance</h1>
+
+<h2 id="the-clonefromto-chain">The <code>CloneFromTo</code> chain</h2>
+<p>Every <code>[Cloneable]</code> type contributes a helper that copies <strong>only the members it declares</strong> and chains to its base:</p>
+<pre><code class="lang-csharp">protected static void CloneFromTo(PhoneNumber from, PhoneNumber to)
+{
+    ContactMethod.CloneFromTo(from, to);
+    to.CountryCode = from.CountryCode;
+    to.LocalNumber = from.LocalNumber;
+}
+</code></pre>
+<p>Every concrete type additionally gets a factory that news up the instance and runs the chain:</p>
+<pre><code class="lang-csharp">public MobileNumber CloneMobileNumber()
+{
+    var from = this;
+    var to = new MobileNumber {Carrier = from.Carrier};
+    CloneFromTo(from, to);
+    return to;
+}
+
+public override PhoneNumber Clone() =&gt; CloneMobileNumber();
+</code></pre>
+<p>Each helper can copy <code>private</code> and <code>protected</code> state of the type that declares it.</p>
+<p><code>required</code> and <code>init</code>-only members are collected from the <strong>whole</strong> inheritance chain and set in the leaf's object initializer.</p>
+<h2 id="which-type-owns-the-clone-name">Which type owns the <code>Clone()</code> name</h2>
+<p>The <strong>clone root</strong> is the topmost ancestor that declares a <a href="interfaces.html">clone interface</a> or a <code>Clone()</code> method of its own.</p>
+<ul>
+<li>The root gets <code>Clone()</code>, returning the root type.</li>
+<li>Everything below it gets <code>Clone</code> + its own type name, plus an <code>override</code> of <code>Clone()</code>.</li>
+</ul>
+<pre><code class="lang-csharp">[Cloneable] public abstract partial class ContactMethod {}
+[Cloneable] public abstract partial class PhoneNumber : ContactMethod, ICloneable&lt;PhoneNumber&gt; {}
+[Cloneable] public partial class MobileNumber : PhoneNumber {}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Generated</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ContactMethod</code></td>
+<td><code>CloneFromTo</code> only</td>
+</tr>
+<tr>
+<td><code>PhoneNumber</code></td>
+<td><code>public abstract PhoneNumber Clone();</code> + <code>CloneFromTo</code></td>
+</tr>
+<tr>
+<td><code>MobileNumber</code></td>
+<td><code>CloneMobileNumber()</code>, <code>public override PhoneNumber Clone() =&gt; CloneMobileNumber();</code> + <code>CloneFromTo</code></td>
+</tr>
+</tbody>
+</table>
+<p>A type that is <code>[Cloneable]</code> but declares <strong>no</strong> clone interface and no <code>Clone()</code> of its own — <code>ContactMethod</code> above — only contributes a helper, leaving the <code>Clone()</code> name to its subclasses. Such a type cannot be cloned polymorphically: a member typed <code>ContactMethod</code> is copied by reference, with a warning. Declare a clone interface on the base wherever you need that.</p>
+<p>Use <a href="attributes.html#methodname"><code>[Cloneable(MethodName = &quot;...&quot;)]</code></a> where the default name does not match an existing public method you want to keep.</p>
+<h2 id="virtual-by-default">Virtual by default</h2>
+<p>The generated root <code>Clone()</code> is <code>virtual</code> unless the class is <code>sealed</code>.</p>
+<h2 id="every-base-class-must-opt-in">Every base class must opt in</h2>
+<p>If a base type holds copyable state but is not <code>[Cloneable]</code>, you get a compiler error rather than a clone that silently drops that state. Annotate the base type too.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/nano-byte/clone-generator/blob/0.1.1/doc/inheritance.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          Copyright Bastian Eicher
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
