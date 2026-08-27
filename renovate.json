@@ -18,9 +18,10 @@
       "automergeType": "branch"
     },
     {
-      "description": "Support older .NET SDK / C# compiler versions",
+      "description": "The generator must reference the oldest Roslyn it needs; hosts running an older compiler (e.g. docfx) refuse to load analyzers that reference a newer one",
       "matchPackageNames": ["Microsoft.CodeAnalysis.CSharp"],
-      "allowedVersions": "<5.4"
+      "matchFileNames": ["src/CloneGenerator/CloneGenerator.csproj"],
+      "allowedVersions": "<4.9"
     }
   ]
 }
