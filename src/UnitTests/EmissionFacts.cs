@@ -685,4 +685,124 @@ public class EmissionFacts
         result.SourceFor("Base").Should().Contain("to._secret = from._secret;")
               .And.Contain("to.Protected = from.Protected;");
     }
+
+    [Fact]
+    public void AbsorbsAccessibleMembersOfAPlainBase()
+    {
+        var result = GeneratorHarness.RunValid(
+            """
+            using NanoByte.CloneGenerator;
+            namespace Test
+            {
+                public class Base { public string? Inherited { get; set; } protected int Level; }
+                [Cloneable] public partial class Derived : Base { public string? Own { get; set; } }
+            }
+            """);
+
+        string derived = result.SourceFor("Derived");
+        derived.Should().Contain("to.Inherited = from.Inherited;")
+               .And.Contain("to.Level = from.Level;")
+               .And.Contain("to.Own = from.Own;");
+
+        // The plain base gets no generated code of its own
+        result.Sources.Keys.Should().NotContain(x => x.Contains("Base"));
+    }
+
+    [Fact]
+    public void AbsorbsAcrossSeveralPlainLevelsOutermostFirst()
+    {
+        var result = GeneratorHarness.RunValid(
+            """
+            using NanoByte.CloneGenerator;
+            namespace Test
+            {
+                public class Grand { public string? G { get; set; } }
+                public class Parent : Grand { public string? P { get; set; } }
+                [Cloneable] public partial class Child : Parent { public string? C { get; set; } }
+            }
+            """);
+
+        string child = result.SourceFor("Child");
+        child.Should().Contain("to.G = from.G;").And.Contain("to.P = from.P;").And.Contain("to.C = from.C;");
+        child.IndexOf("to.G", StringComparison.Ordinal).Should().BeLessThan(child.IndexOf("to.P", StringComparison.Ordinal));
+        child.IndexOf("to.P", StringComparison.Ordinal).Should().BeLessThan(child.IndexOf("to.C", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ChainsToACloneableGrandparentAndAbsorbsThePlainIntermediate()
+    {
+        var result = GeneratorHarness.RunValid(CloneableInterface,
+            """
+            using NanoByte.CloneGenerator;
+            namespace Test
+            {
+                [Cloneable] public abstract partial class Root : global::Contracts.ICloneable<Root> { public string? R { get; set; } }
+                public abstract class Middle : Root { public string? M { get; set; } }
+                [Cloneable] public partial class Leaf : Middle { public string? L { get; set; } }
+            }
+            """);
+
+        string leaf = result.SourceFor("Leaf");
+        leaf.Should().Contain("global::Test.Root.CloneFromTo(from, to);")
+            .And.Contain("to.M = from.M;")
+            .And.Contain("to.L = from.L;");
+
+        result.Sources.Keys.Should().NotContain(x => x.Contains("Middle"));
+    }
+
+    [Fact]
+    public void AppliesDeepCopyRulesToAbsorbedMembers()
+    {
+        var result = GeneratorHarness.RunValid(CloneableInterface,
+            """
+            using NanoByte.CloneGenerator;
+            namespace Test
+            {
+                [Cloneable] public partial class Item : global::Contracts.ICloneable<Item> { public string? V { get; set; } }
+                public class Base { public Item? Payload { get; set; } }
+                [Cloneable] public partial class Derived : Base { public string? Own { get; set; } }
+            }
+            """);
+
+        result.SourceFor("Derived").Should().Contain("to.Payload = from.Payload?.Clone()");
+    }
+
+    [Fact]
+    public void AbsorbsSettablePropertiesOfANonCloneableBaseFromAnotherAssembly()
+    {
+        var result = GeneratorHarness.RunAcrossAssemblies(
+            """
+            namespace Library
+            {
+                public class Base { public string? Inherited { get; set; } }
+            }
+            """,
+            """
+            using NanoByte.CloneGenerator;
+            namespace Test
+            {
+                [Cloneable] public partial class Leaf : global::Library.Base { public int Extra { get; set; } }
+            }
+            """);
+
+        result.SourceFor("Leaf").Should().Contain("to.Inherited = from.Inherited;");
+    }
+
+    [Fact]
+    public void SetsRequiredMembersOfAPlainBaseOnlyInTheObjectInitializer()
+    {
+        var result = GeneratorHarness.RunValid(
+            """
+            using NanoByte.CloneGenerator;
+            namespace Test
+            {
+                public class Base { public required string Name { get; set; } public string? Other { get; init; } }
+                [Cloneable] public partial class Derived : Base { public string? Own { get; set; } }
+            }
+            """);
+
+        string derived = result.SourceFor("Derived");
+        derived.Should().Contain("Name = from.Name").And.Contain("Other = from.Other");
+        derived.Should().NotContain("to.Name =").And.NotContain("to.Other =");
+    }
 }

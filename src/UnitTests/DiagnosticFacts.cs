@@ -114,9 +114,9 @@ public class DiagnosticFacts
     }
 
     [Fact]
-    public void ReportsBaseTypesThatAreNotCloneable()
+    public void AbsorbsAccessibleStateOfANonCloneableBase()
     {
-        var result = GeneratorHarness.Run(
+        var result = GeneratorHarness.RunValid(
             """
             using NanoByte.CloneGenerator;
             namespace Test
@@ -126,7 +126,41 @@ public class DiagnosticFacts
             }
             """);
 
-        result.DiagnosticIds.Should().Contain("CLONE004");
+        result.DiagnosticIds.Should().NotContain("CLONE004");
+        result.SourceFor("Derived").Should().Contain("to.Inherited = from.Inherited;");
+    }
+
+    [Fact]
+    public void WarnsAboutPrivateStateOfANonCloneableBase()
+    {
+        var result = GeneratorHarness.Run(
+            """
+            using NanoByte.CloneGenerator;
+            namespace Test
+            {
+                public class Base { private string? _secret; }
+                [Cloneable] public partial class Derived : Base { public string? Own { get; set; } }
+            }
+            """);
+
+        var clone004 = result.GeneratorDiagnostics.Single(x => x.Id == "CLONE004");
+        clone004.Severity.Should().Be(DiagnosticSeverity.Warning);
+    }
+
+    [Fact]
+    public void IgnoreCloneOnABaseMemberSilencesTheUnreachableStateWarning()
+    {
+        var result = GeneratorHarness.Run(
+            """
+            using NanoByte.CloneGenerator;
+            namespace Test
+            {
+                public class Base { [IgnoreClone] private string? _secret; }
+                [Cloneable] public partial class Derived : Base { public string? Own { get; set; } }
+            }
+            """);
+
+        result.DiagnosticIds.Should().NotContain("CLONE004");
     }
 
     [Fact]

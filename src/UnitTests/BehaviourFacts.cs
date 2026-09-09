@@ -112,6 +112,51 @@ public class BehaviourFacts
         nodes.Should().Equal(1, 2, 3);
     }
 
+    [Fact]
+    public void AbsorbedBaseStateIsClonedIndependently()
+    {
+        var assembly = GeneratorHarness.RunValid(
+            """
+            using System.Collections.Generic;
+            using NanoByte.CloneGenerator;
+            namespace Test
+            {
+                public interface ICloneable<out T> { T Clone(); }
+                [Cloneable] public partial class Item : ICloneable<Item> { public string? Value { get; set; } }
+
+                public class Base
+                {
+                    public string? Inherited { get; set; }
+                    public List<Item> Items { get; } = new();
+                }
+
+                [Cloneable] public partial class Derived : Base { public string? Own { get; set; } }
+            }
+            """).Load();
+
+        var derivedType = assembly.GetType("Test.Derived")!;
+        var itemType = assembly.GetType("Test.Item")!;
+
+        object original = Activator.CreateInstance(derivedType)!;
+        Set(original, "Inherited", "base-state");
+        Set(original, "Own", "own-state");
+        object item = Activator.CreateInstance(itemType)!;
+        Set(item, "Value", "a");
+        ((IList)Get(original, "Items")!).Add(item);
+
+        object clone = derivedType.GetMethod("Clone")!.Invoke(original, null)!;
+
+        Get(clone, "Inherited").Should().Be("base-state");
+        Get(clone, "Own").Should().Be("own-state");
+
+        // The deep-copied inherited collection is independent of the original
+        var clonedItems = ((IEnumerable)Get(clone, "Items")!).Cast<object>().ToList();
+        clonedItems.Should().HaveCount(1);
+        clonedItems[0].Should().NotBeSameAs(item);
+        Set(clonedItems[0], "Value", "changed");
+        Get(item, "Value").Should().Be("a");
+    }
+
     private static (object leaf, Type type) CreateLeaf()
     {
         var assembly = GeneratorHarness.RunValid(Model).Load();

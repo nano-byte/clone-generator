@@ -184,6 +184,13 @@ internal static class SymbolHelpers
                    .OfType<IFieldSymbol>()
                    .Any(x => SymbolEqualityComparer.Default.Equals(x.AssociatedSymbol, property));
 
+    /// <summary>
+    /// Whether a settable property is worth copying as state of its own.
+    /// </summary>
+    public static bool HoldsOwnState(this IPropertySymbol property)
+        => property.IsAutoProperty()
+        || property.ContainingType.DeclaringSyntaxReferences.IsEmpty;
+
     public static bool IsRecordClass(this ITypeSymbol type)
         => type is INamedTypeSymbol {IsRecord: true, IsReferenceType: true};
 

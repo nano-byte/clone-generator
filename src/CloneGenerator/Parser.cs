@@ -37,10 +37,31 @@ internal sealed class Parser(IReadOnlyCollection<string> shallowTypes, bool supp
         if (handWrittenCloneFromTo)
             Report(Diagnostics.HandWritten, type, type.Name, "CloneFromTo()");
 
-        string? baseCloneFromTo = ResolveBaseCloneFromTo(type);
+        var (baseCloneFromTo, absorbedBases) = ResolveBaseChain(type);
+
+        var members = new List<MemberSpec>();
+
+        // Copy the members of any base classes that provide no reusable CloneFromTo of their own,
+        // outermost first so the emitted order matches a normal base-before-derived chain.
+        foreach (var baseType in absorbedBases.AsEnumerable().Reverse())
+        {
+            foreach (var member in CopyableMembers(baseType))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (member.IsRequiredOrInit()) continue; // gathered across the whole chain for the leaf's object initializer
+
+                if (!member.IsAccessibleFrom(type))
+                {
+                    Report(Diagnostics.BaseNotCloneable, type, type.Name, baseType.Name, member.Name);
+                    continue;
+                }
+
+                if (BuildStatement(member) is {} statement)
+                    members.Add(new(member.Name, statement));
+            }
+        }
 
         var declaredMembers = CopyableMembers(type).ToList();
-        var members = new List<MemberSpec>();
         foreach (var member in declaredMembers)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -140,18 +161,26 @@ internal sealed class Parser(IReadOnlyCollection<string> shallowTypes, bool supp
             ? declared.IsAbstract || declared.IsVirtual || declared.IsOverride
             : root.IsCloneable();
 
-    private string? ResolveBaseCloneFromTo(INamedTypeSymbol type)
+    /// <summary>
+    /// Walks up from <paramref name="type"/> and splits the base chain into the nearest ancestor that
+    /// provides a reusable <c>CloneFromTo</c> (chained to as <see cref="CloneTypeSpec.BaseCloneFromTo"/>)
+    /// and the plain classes walked before it, whose members this type has to copy itself.
+    /// </summary>
+    private static (string? baseCloneFromTo, IReadOnlyList<INamedTypeSymbol> absorbed) ResolveBaseChain(INamedTypeSymbol type)
     {
-        if (type.BaseType is not {SpecialType: not SpecialType.System_Object} baseType) return null;
+        var absorbed = new List<INamedTypeSymbol>();
 
-        if (baseType.IsCloneable() || baseType.HasDeclaredCloneFromTo())
-            return baseType.Qualified();
+        foreach (var baseType in type.BaseTypes())
+        {
+            // A hand-written Clone() with no CloneFromTo is not reusable: it builds a fresh base
+            // instance and cannot copy into an existing 'to', so that level has to be absorbed too.
+            if (baseType.IsCloneable() || baseType.HasDeclaredCloneFromTo())
+                return (baseType.Qualified(), absorbed);
 
-        // The base holds state we would silently drop
-        if (CopyableMembers(baseType).Any() || baseType.BaseTypes().Any(x => CopyableMembers(x).Any()))
-            Report(Diagnostics.BaseNotCloneable, type, type.Name, baseType.Name);
+            absorbed.Add(baseType);
+        }
 
-        return null;
+        return (null, absorbed);
     }
 
     private static IEnumerable<ISymbol> CopyableMembers(INamedTypeSymbol type)
@@ -161,7 +190,7 @@ internal sealed class Parser(IReadOnlyCollection<string> shallowTypes, bool supp
                     // A settable property must hold state of its own; a computed one just projects
                     // other members, which are copied directly anyway
                     IPropertySymbol {IsStatic: false, IsIndexer: false, GetMethod: not null, SetMethod: not null} property
-                        => property.IsAutoProperty(),
+                        => property.HoldsOwnState(),
                     IPropertySymbol {IsStatic: false, IsIndexer: false, GetMethod: not null} => true,
                     IFieldSymbol {IsStatic: false, IsConst: false, IsImplicitlyDeclared: false, IsReadOnly: false} => true,
                     _ => false

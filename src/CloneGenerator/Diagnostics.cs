@@ -28,12 +28,12 @@ internal static class Diagnostics
         "'{0}' is copied by reference because '{1}' offers no clone method, so the clone will share this instance. Give '{1}' a public Clone() or an ICloneable<{1}> interface, or silence this with [ShallowClone] or [assembly: CloneShallow(typeof({1}))].",
         Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    /// <summary>The base type holds state that the generated code cannot reach.</summary>
+    /// <summary>A base type member holds state that the generated code cannot reach.</summary>
     public static readonly DiagnosticDescriptor BaseNotCloneable = new(
         "CLONE004",
-        "Base type is not cloneable",
-        "'{0}' derives from '{1}', which holds copyable state but is not annotated with [Cloneable]; that state would be silently dropped",
-        Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
+        "Base type holds unreachable state",
+        "'{0}' cannot copy '{1}.{2}' because it is not accessible; that state will be lost. Annotate '{1}' with [Cloneable] so it can copy its own private state, or silence this with [IgnoreClone].",
+        Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     /// <summary>A hand-written implementation already exists, so the generator backs off.</summary>
     public static readonly DiagnosticDescriptor HandWritten = new(
