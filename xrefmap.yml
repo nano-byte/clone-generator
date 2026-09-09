@@ -1,0 +1,34 @@
+### YamlMime:XRefMap
+sorted: true
+references:
+- uid: NanoByte.CloneGenerator
+  name: NanoByte.CloneGenerator
+  href: api/NanoByte.CloneGenerator.html
+  commentId: N:NanoByte.CloneGenerator
+  fullName: NanoByte.CloneGenerator
+  nameWithType: NanoByte.CloneGenerator
+- uid: NanoByte.CloneGenerator.CloneSourceGenerator
+  name: CloneSourceGenerator
+  href: api/NanoByte.CloneGenerator.CloneSourceGenerator.html
+  commentId: T:NanoByte.CloneGenerator.CloneSourceGenerator
+  fullName: NanoByte.CloneGenerator.CloneSourceGenerator
+  nameWithType: CloneSourceGenerator
+- uid: NanoByte.CloneGenerator.CloneSourceGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext)
+  name: Initialize(IncrementalGeneratorInitializationContext)
+  href: api/NanoByte.CloneGenerator.CloneSourceGenerator.html#NanoByte_CloneGenerator_CloneSourceGenerator_Initialize_Microsoft_CodeAnalysis_IncrementalGeneratorInitializationContext_
+  commentId: M:NanoByte.CloneGenerator.CloneSourceGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext)
+  fullName: NanoByte.CloneGenerator.CloneSourceGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext)
+  nameWithType: CloneSourceGenerator.Initialize(IncrementalGeneratorInitializationContext)
+- uid: NanoByte.CloneGenerator.CloneSourceGenerator.Initialize*
+  name: Initialize
+  href: api/NanoByte.CloneGenerator.CloneSourceGenerator.html#NanoByte_CloneGenerator_CloneSourceGenerator_Initialize_
+  commentId: Overload:NanoByte.CloneGenerator.CloneSourceGenerator.Initialize
+  isSpec: "True"
+  fullName: NanoByte.CloneGenerator.CloneSourceGenerator.Initialize
+  nameWithType: CloneSourceGenerator.Initialize
+- uid: NanoByte.CloneGenerator.CloneSourceGenerator.TrackingName
+  name: TrackingName
+  href: api/NanoByte.CloneGenerator.CloneSourceGenerator.html#NanoByte_CloneGenerator_CloneSourceGenerator_TrackingName
+  commentId: F:NanoByte.CloneGenerator.CloneSourceGenerator.TrackingName
+  fullName: NanoByte.CloneGenerator.CloneSourceGenerator.TrackingName
+  nameWithType: CloneSourceGenerator.TrackingName
