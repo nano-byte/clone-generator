@@ -37,6 +37,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>C#;Clone;DeepCopy;CodeGen;Roslyn;SourceGenerator</PackageTags>
     <RepositoryUrl>https://github.com/nano-byte/clone-generator</RepositoryUrl>
+    <PackageReleaseNotes>https://github.com/nano-byte/clone-generator/releases/tag/$(Version)</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
